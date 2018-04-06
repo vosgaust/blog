@@ -2,13 +2,13 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Tags on Cajon de-sastre</title>
-    <link>https://username.github.io/tags/</link>
+    <link>https://vosgaust.github.io/blog/tags/</link>
     <description>Recent content in Tags on Cajon de-sastre</description>
     <generator>Hugo -- gohugo.io</generator>
     <managingEditor>edugar91@gmail.com (Edu Moyano)</managingEditor>
     <webMaster>edugar91@gmail.com (Edu Moyano)</webMaster>
     
-	<atom:link href="https://username.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://vosgaust.github.io/blog/tags/index.xml" rel="self" type="application/rss+xml" />
     
     
   </channel>
