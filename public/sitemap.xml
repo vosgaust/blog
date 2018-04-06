@@ -3,29 +3,29 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://vosgaust.github.io/blog/post/rabbit1/</loc>
+    <loc>https://vosgaust.github.io/blog/public/post/rabbit1/</loc>
     <lastmod>2018-04-03T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://vosgaust.github.io/blog/</loc>
-    <lastmod>2018-04-03T00:00:00+00:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://vosgaust.github.io/blog/categories/</loc>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://vosgaust.github.io/blog/post/</loc>
+    <loc>https://vosgaust.github.io/blog/public/</loc>
     <lastmod>2018-04-03T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://vosgaust.github.io/blog/tags/</loc>
+    <loc>https://vosgaust.github.io/blog/public/categories/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://vosgaust.github.io/blog/public/post/</loc>
+    <lastmod>2018-04-03T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://vosgaust.github.io/blog/public/tags/</loc>
     <priority>0</priority>
   </url>
   
