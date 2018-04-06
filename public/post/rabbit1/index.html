@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+  <title>Usando rabbitmq en node.js</title>
+  <meta property="og:title" content="Usando rabbitmq en node.js" />
+  <meta name="twitter:title" content="Usando rabbitmq en node.js" />
+  <meta name="description" content="Hacía tiempo que quería hacer algo con sistemas de colas más allá del ejemplo básico. Recientemente en mashme.io hemos necesitado usarlas para integrar dos servicios distintos y como no había nada hecho, hemos tenido que empezar desde cero.
+Conforme iba leyendo documentación y guías sobre colas me daba la sensación de que no había un método de organización o de buenas prácticas definido como podría ser el caso de express.">
+  <meta property="og:description" content="Hacía tiempo que quería hacer algo con sistemas de colas más allá del ejemplo básico. Recientemente en mashme.io hemos necesitado usarlas para integrar dos servicios distintos y como no había nada hecho, hemos tenido que empezar desde cero.
+Conforme iba leyendo documentación y guías sobre colas me daba la sensación de que no había un método de organización o de buenas prácticas definido como podría ser el caso de express.">
+  <meta name="twitter:description" content="Hacía tiempo que quería hacer algo con sistemas de colas más allá del ejemplo básico. Recientemente en mashme.io hemos necesitado usarlas para integrar dos servicios distintos y como no había nada …">
+  <meta name="author" content="Edu Moyano"/>
+  <link href='https://username.github.io/img/favicon.ico' rel='icon' type='image/x-icon'/>
+  <meta property="og:image" content="https://username.github.io/img/logo.jpg" />
+  <meta name="twitter:image" content="https://username.github.io/img/logo.jpg" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:site" content="@godraude" />
+  <meta name="twitter:creator" content="@godraude" />
+  <meta property="og:url" content="https://username.github.io/post/rabbit1/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Cajon de-sastre" />
+
+  <meta name="generator" content="Hugo 0.37.1" />
+  <link rel="canonical" href="https://username.github.io/post/rabbit1/" />
+  <link rel="alternate" href="https://username.github.io/index.xml" type="application/rss+xml" title="Cajon de-sastre">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.css" integrity="sha384-wITovz90syo1dJWVh32uuETPVEtGigN07tkttEqPv+uR2SE/mbQcG7ATL28aI9H0" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://username.github.io/css/main.css" /><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" />
+  <link rel="stylesheet" href="https://username.github.io/css/highlight.min.css" /><link rel="stylesheet" href="https://username.github.io/css/codeblock.css" />
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe.min.css" integrity="sha384-h/L2W9KefUClHWaty3SLE5F/qvc4djlyR4qY3NUV5HGQBBW7stbcfff1+I/vmsHh" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/default-skin/default-skin.min.css" integrity="sha384-iD0dNku6PYSIQLyfTOpB06F2KCZJAKLOThS5HRe8b3ibhdEQ6eKsFf/EeFxdOt5R" crossorigin="anonymous">
+
+
+
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+<div class="pswp__bg"></div>
+
+<div class="pswp__scroll-wrap">
+    
+    <div class="pswp__container">
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+    </div>
+    
+    <div class="pswp__ui pswp__ui--hidden">
+    <div class="pswp__top-bar">
+      
+      <div class="pswp__counter"></div>
+      <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+      <button class="pswp__button pswp__button--share" title="Share"></button>
+      <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+      <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+      
+      
+      <div class="pswp__preloader">
+        <div class="pswp__preloader__icn">
+          <div class="pswp__preloader__cut">
+            <div class="pswp__preloader__donut"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+      <div class="pswp__share-tooltip"></div>
+    </div>
+    <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+    </button>
+    <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+    </button>
+    <div class="pswp__caption">
+      <div class="pswp__caption__center"></div>
+    </div>
+    </div>
+    </div>
+</div>
+
+</head>
+
+  <body>
+    <nav class="navbar navbar-default navbar-fixed-top navbar-custom">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#main-navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="https://username.github.io">Cajon de-sastre</a>
+    </div>
+
+    <div class="collapse navbar-collapse" id="main-navbar">
+      <ul class="nav navbar-nav navbar-right">
+        
+          
+            <li>
+              <a title="Blog" href="/">Blog</a>
+            </li>
+          
+        
+
+        
+
+        
+      </ul>
+    </div>
+
+    <div class="avatar-container">
+      <div class="avatar-img-border">
+        
+          <a title="Cajon de-sastre" href="https://username.github.io">
+            <img class="avatar-img" src="https://username.github.io/img/logo.jpg" alt="Cajon de-sastre" />
+          </a>
+        
+      </div>
+    </div>
+
+  </div>
+</nav>
+
+
+
+
+    
+  
+  
+  
+
+
+
+
+  
+
+  <header class="header-section ">
+    
+    <div class="intro-header no-img">
+      
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+            <div class="post-heading">
+              <h1>Usando rabbitmq en node.js</h1>
+                
+                
+                  <span class="post-meta">
+  
+  
+  <i class="fa fa-calendar-o"></i>&nbsp;Posted on April 3, 2018
+  
+  
+  &nbsp;|&nbsp;
+  <i class="fa fa-clock-o"></i> 6 minutes (1097 words)
+  
+  
+</span>
+
+
+                
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+
+    
+<div class="container" role="main">
+  <div class="row">
+    <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+      <article role="main" class="blog-post">
+        
+
+<p>Hacía tiempo que quería hacer algo con sistemas de colas más allá del ejemplo básico. Recientemente en mashme.io hemos necesitado usarlas para integrar dos servicios distintos y como no había nada hecho, hemos tenido que empezar desde cero.</p>
+
+<p>Conforme iba leyendo documentación y guías sobre colas me daba la sensación de que no había un método de organización o de buenas prácticas definido como podría ser el caso de express.js en el que por un lado se definen las rutas y por otro los controladores y queda muy claro desde el principio cómo se construye cada uno.</p>
+
+<p>En esta serie de posts intentaré describir el estándar que he intentado establecer después de leer y preguntar mucho sobre cómo lo estaban haciendo otros. Personalmente no he encontrado nada que hablara sobre cómo implementar un sistema de colas consistente con rabbitmq en Node.js. El objetivo de escribir esto es que le pueda servir de ayuda a alguien en mi misma situación y por supuesto como autoaprendizaje.</p>
+
+<p>Voy a utilizar como ejemplo el funcionamiento de una cocina domótica. Esta cocina se controlará desde un servidor central al que enviaremos las órdenes usando una API REST. El servidor se comunicará con el resto de elementos de la cocina a través de colas.</p>
+
+<h3 id="conceptos">Conceptos</h3>
+
+<ul>
+<li>Exchange: elemento encargado de enrutar los mensajes a las diferentes colas que tenga conectadas</li>
+<li>Cola: pila de mensajes que se consumen bajo demanda</li>
+</ul>
+
+<h3 id="exchange-tipo-fanout">Exchange tipo fanout</h3>
+
+<p>Un exchange de tipo fanout envia una copia del mensaje recibido a todas las colas que tenga enganchadas.
+En nuestro caso vamos a usar este tipo de exchange para comunicarnos con los hornos de la cocina.</p>
+
+<p>Para mantener el código lo más desacoplado posible vamos a crear una nueva clase llamada <code>WorkerFanout</code> que usaremos para conectarnos con el servidor de rabbit, crear el exchange y consumir mensajes. Esta clase nos permitirá crear nuevos servicios de tipo fanout sin necesidad de replicar código.</p>
+
+<p>Al constructor de esta clase le pasaremos el host del servidor de rabbitmq, el nombre del exchange y un procesador que se encargará de procesar los mensajes que consuma esta clase.
+El unico requisto de un procesador es que debe tener un método llamado <code>processMessage</code> que será usado por el worker.
+A continuación se muestra un esquema de esta jerarquía de clases:</p>
+
+<p><img src="/Users/edumoyano/Downloads/WorkerFanoutScheme.png" alt="" /></p>
+
+<p>En el constructor de la clase simplemente estableceremos los atributos recibidos:</p>
+<div class="highlight"><pre class="chroma"><code class="language-js" data-lang="js"><span class="k">class</span> <span class="nx">WorkerFanout</span> <span class="p">{</span>
+  <span class="nx">constructor</span><span class="p">(</span><span class="nx">options</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">exchange</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">exchange</span> <span class="o">||</span> <span class="s1">&#39;&#39;</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">processor</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">processor</span> <span class="o">||</span> <span class="kc">null</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">host</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">host</span> <span class="o">||</span> <span class="s1">&#39;localhost&#39;</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">ready</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Para empezar a consumir mensajes crearemos un método <code>start</code> que inicializará la conexión con el servidor, creará el exchange y comenzará a consumir.</p>
+<div class="highlight"><pre class="chroma"><code class="language-js" data-lang="js"><span class="nx">start</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">ready</span> <span class="o">=</span> <span class="nx">amqplib</span><span class="p">.</span><span class="nx">connect</span><span class="p">(</span><span class="sb">`amqp://</span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">host</span><span class="si">}</span><span class="sb">`</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">((</span><span class="nx">connection</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">connection</span> <span class="o">=</span> <span class="nx">connection</span><span class="p">;</span>
+      <span class="k">return</span> <span class="nx">connection</span><span class="p">.</span><span class="nx">createChannel</span><span class="p">();</span>
+    <span class="p">})</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">((</span><span class="nx">channel</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">channel</span> <span class="o">=</span> <span class="nx">channel</span><span class="p">;</span>
+      <span class="nx">channel</span><span class="p">.</span><span class="nx">assertExchange</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">exchange</span><span class="p">,</span> <span class="s1">&#39;fanout&#39;</span><span class="p">);</span>
+      <span class="k">return</span> <span class="nx">channel</span><span class="p">.</span><span class="nx">assertQueue</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+      <span class="p">.</span><span class="nx">then</span><span class="p">((</span><span class="nx">response</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">{</span>
+        <span class="k">const</span> <span class="nx">createdQueue</span> <span class="o">=</span> <span class="nx">response</span><span class="p">.</span><span class="nx">queue</span><span class="p">;</span>
+        <span class="nx">channel</span><span class="p">.</span><span class="nx">bindQueue</span><span class="p">(</span><span class="nx">createdQueue</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">exchange</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">);</span>
+        <span class="k">return</span> <span class="nx">channel</span><span class="p">.</span><span class="nx">consume</span><span class="p">(</span>
+          <span class="nx">createdQueue</span><span class="p">,</span>
+          <span class="nx">message</span> <span class="p">=&gt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">processor</span><span class="p">.</span><span class="nx">processMessage</span><span class="p">(</span><span class="nx">message</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">_ackMessage</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="k">this</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">err</span> <span class="p">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="sb">`Error receiving from queue </span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">queue</span><span class="si">}</span><span class="sb">`</span><span class="p">));</span>
+      <span class="p">});</span>
+    <span class="p">})</span>
+    <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">err</span> <span class="p">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="sb">`Error connecting to queue </span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">queue</span><span class="si">}</span><span class="sb">`</span><span class="p">));</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Lo que hemos hecho en este método es:</p>
+
+<ol>
+<li>Conectarnos con el servidor</li>
+<li>Crear un exchange de tipo fanout con el nombre que se pasó en el constructor</li>
+<li>Crear una cola y conectarla con el exchange. Si no se especifica nombre al crear la cola, se creara un nombre aleatorio.</li>
+<li>Se inicia el consumidor</li>
+</ol>
+
+<p>Como se puede ver, el worker no hace nada en concreto con el mensaje recibido, simplemente lo delega en el procesador.</p>
+
+<p>Es importante destacar que ademas del mensaje, tambien pasa al procesador una función llamada <code>_ackMessage</code>, que el procesador usará para informar de que ha completado satisfactoriamente (o no) la tarea. Esta función pinta asi:</p>
+<div class="highlight"><pre class="chroma"><code class="language-js" data-lang="js"><span class="nx">_ackMessage</span><span class="p">(</span><span class="nx">result</span><span class="p">,</span> <span class="nx">message</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span><span class="p">(</span><span class="nx">result</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">channel</span><span class="p">.</span><span class="nx">ack</span><span class="p">(</span><span class="nx">message</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">channel</span><span class="p">.</span><span class="nx">nack</span><span class="p">(</span><span class="nx">message</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Como se puede observar, recibe como primer argumento un booleano que informa sobre si ha terminado correctamente o no. El segundo argumento es el mensaje recibido tal cual.</p>
+
+<p>Paralelo al worker, crearemos una clase <code>PublisherFanout</code>. Esta clase la usaremos para enviar mensajes a un exchange de tipo fanout.
+En el constructor de esta clase abriremos la conexión con el servidor y con el exchange.</p>
+<div class="highlight"><pre class="chroma"><code class="language-javascript" data-lang="javascript"><span class="k">class</span> <span class="nx">PublisherFanout</span> <span class="p">{</span>
+  <span class="nx">constructor</span><span class="p">(</span><span class="nx">options</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">exchange</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">exchange</span> <span class="o">?</span> <span class="nx">options</span><span class="p">.</span><span class="nx">exchange</span> <span class="o">:</span> <span class="s1">&#39;&#39;</span><span class="p">;</span>
+    <span class="k">const</span> <span class="nx">rabbitHost</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">host</span> <span class="o">||</span> <span class="s1">&#39;localhost&#39;</span><span class="p">;</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">debug</span><span class="p">(</span><span class="sb">`Connection publisher to </span><span class="si">${</span><span class="nx">rabbitHost</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">ready</span> <span class="o">=</span> <span class="nx">amqplib</span><span class="p">.</span><span class="nx">connect</span><span class="p">(</span><span class="sb">`amqp://</span><span class="si">${</span><span class="nx">rabbitHost</span><span class="si">}</span><span class="sb">`</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">((</span><span class="nx">connection</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">connection</span> <span class="o">=</span> <span class="nx">connection</span><span class="p">;</span>
+      <span class="k">return</span> <span class="nx">connection</span><span class="p">.</span><span class="nx">createChannel</span><span class="p">();</span>
+    <span class="p">})</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">((</span><span class="nx">channel</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">channel</span> <span class="o">=</span> <span class="nx">channel</span><span class="p">;</span>
+      <span class="k">return</span> <span class="nx">channel</span><span class="p">.</span><span class="nx">assertExchange</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">exchange</span><span class="p">,</span> <span class="s1">&#39;fanout&#39;</span><span class="p">);</span>
+    <span class="p">})</span>
+    <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">err</span> <span class="p">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">({</span> <span class="nx">err</span><span class="o">:</span> <span class="nx">err</span> <span class="p">},</span> <span class="sb">`Error connecting to exchange </span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">exchange</span><span class="si">}</span><span class="sb">`</span><span class="p">));</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Los mensajes se enviarán usando el método <code>publishMessage</code> de esta clase:</p>
+<div class="highlight"><pre class="chroma"><code class="language-javascript" data-lang="javascript">  <span class="nx">publishMessage</span><span class="p">(</span><span class="nx">payload</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">const</span> <span class="nx">message</span> <span class="o">=</span> <span class="k">typeof</span> <span class="nx">payload</span> <span class="o">===</span> <span class="s1">&#39;string&#39;</span> <span class="o">?</span> <span class="k">new</span> <span class="nx">Buffer</span><span class="p">(</span><span class="nx">payload</span><span class="p">)</span> <span class="o">:</span> <span class="k">new</span> <span class="nx">Buffer</span><span class="p">(</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">payload</span><span class="p">));</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">ready</span><span class="p">.</span><span class="nx">then</span><span class="p">(()</span> <span class="p">=&gt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">channel</span><span class="p">.</span><span class="nx">publish</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">exchange</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="nx">message</span><span class="p">))</span>
+    <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">err</span> <span class="p">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">({</span> <span class="nx">err</span><span class="o">:</span> <span class="nx">err</span> <span class="p">},</span> <span class="sb">`Error sending to queue </span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">queue</span><span class="si">}</span><span class="sb">`</span><span class="p">));</span>
+  <span class="p">}</span>
+</code></pre></div>
+<p>Ahora crearemos el procesador específico que ejecutarán los hornos. Los hornos tendrán tres acciones basicas:</p>
+
+<ul>
+<li>iniciar: calentará durante el tiempo especificado</li>
+<li>parar: dejará de calentar aunque el tiempo no haya acabado</li>
+<li>añadir más tiempo: se ampliará el tiempo de funcionamiento</li>
+</ul>
+
+<p>Al mismo tiempo y gracias a que hemos elegido el exchange de tipo fanout, podremos enviar tareas a varios hornos usando el mismo mensaje. Para conseguir esto, cada horno llevará un identificador único y el procesador decidirá si el mensaje es para él o no en función de este identificador.</p>
+<div class="highlight"><pre class="chroma"><code class="language-javascript" data-lang="javascript"><span class="k">class</span> <span class="nx">OvenProcessor</span> <span class="p">{</span>
+  <span class="nx">constructor</span><span class="p">(</span><span class="nx">options</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">id</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">id</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">processors</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="nx">start</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">_start</span><span class="p">,</span>
+      <span class="nx">stop</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">_stop</span><span class="p">,</span>
+      <span class="s1">&#39;add-time&#39;</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">_addTime</span>
+    <span class="p">};</span>
+  <span class="p">}</span>
+
+  <span class="nx">processMessage</span><span class="p">(</span><span class="nx">message</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">const</span> <span class="nx">payload</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">message</span><span class="p">.</span><span class="nx">content</span><span class="p">.</span><span class="nx">toString</span><span class="p">());</span>
+    <span class="k">const</span> <span class="nx">processor</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">processors</span><span class="p">[</span><span class="nx">payload</span><span class="p">.</span><span class="nx">action</span><span class="p">];</span>
+    <span class="k">if</span><span class="p">(</span><span class="k">typeof</span> <span class="nx">processor</span> <span class="o">===</span> <span class="s1">&#39;function&#39;</span> <span class="o">&amp;&amp;</span> <span class="nx">payload</span><span class="p">.</span><span class="nx">ovenIDs</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span> <span class="o">!==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">console</span><span class="p">.</span><span class="nx">debug</span><span class="p">(</span><span class="s1">&#39;Processing message&#39;</span><span class="p">);</span>
+      <span class="nx">processor</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">payload</span><span class="p">,</span> <span class="nx">message</span><span class="p">,</span> <span class="nx">callback</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="nx">_start</span><span class="p">(</span><span class="nx">info</span><span class="p">,</span> <span class="nx">message</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Oven </span><span class="si">${</span><span class="k">this</span><span class="p">.</span><span class="nx">id</span><span class="si">}</span><span class="sb"> cooking for </span><span class="si">${</span><span class="nx">info</span><span class="p">.</span><span class="nx">time</span><span class="si">}</span><span class="sb"> seconds`</span><span class="p">);</span>
+    <span class="nx">callback</span><span class="p">(</span><span class="kc">true</span><span class="p">,</span> <span class="nx">message</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Como se puede ver, en el constructor se asocian las funciones a cada posible acción. El método <code>processMessage</code> comprobará que puede atender a esa acción y que esa acción va dirigida para él.</p>
+
+<p>Para probar esto crearemos nuestro consumidor (consumer.js):</p>
+<div class="highlight"><pre class="chroma"><code class="language-js" data-lang="js"><span class="k">const</span> <span class="nx">WorkerDirect</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./WorkerFanout&#39;</span><span class="p">);</span>
+<span class="k">const</span> <span class="nx">OvenProcessor</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./OvenProcessor&#39;</span><span class="p">);</span>
+
+<span class="k">const</span> <span class="nx">oven</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">OvenProcessor</span><span class="p">({</span> <span class="nx">id</span><span class="o">:</span> <span class="s1">&#39;oven1&#39;</span> <span class="p">});</span>
+<span class="k">const</span> <span class="nx">worker</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">WorkerDirect</span><span class="p">({</span> <span class="nx">exchange</span><span class="o">:</span> <span class="s1">&#39;ovens&#39;</span><span class="p">,</span> <span class="nx">processor</span><span class="o">:</span> <span class="nx">oven</span> <span class="p">});</span>
+<span class="nx">worker</span><span class="p">.</span><span class="nx">start</span><span class="p">();</span>
+</code></pre></div>
+<p>Y el emisor (publisher.js):</p>
+<div class="highlight"><pre class="chroma"><code class="language-js" data-lang="js"><span class="k">const</span> <span class="nx">PublisherDirect</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./PublisherFanout&#39;</span><span class="p">);</span>
+
+<span class="k">const</span> <span class="nx">publisher</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">PublisherDirect</span><span class="p">({</span> <span class="nx">exchange</span><span class="o">:</span> <span class="s1">&#39;ovens&#39;</span> <span class="p">});</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Setting oven1 to cook for 10 seconds&#39;</span><span class="p">);</span>
+<span class="nx">publisher</span><span class="p">.</span><span class="nx">publishMessage</span><span class="p">({</span> <span class="nx">action</span><span class="o">:</span> <span class="s1">&#39;start&#39;</span><span class="p">,</span> <span class="nx">ovenIDs</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;oven1&#39;</span><span class="p">],</span> <span class="nx">time</span><span class="o">:</span> <span class="mi">10</span> <span class="p">});</span>
+</code></pre></div>
+<p>Si los ejecutamos obtendremos algo asi:</p>
+<div class="highlight"><pre class="chroma">node publisher.js
+Setting oven1 to cook for 10 seconds
+--------------------
+node consumer.js
+Oven oven1 cooking for 10 seconds</pre></div>
+<p>Y esto sería todo en cuanto a los exchanges de tipo fanout. El código completo de los 5 archivos de ejemplo se puede encontrar en:</p>
+
+<p><a href="https://gist.github.com/vosgaust/11862edf45ba6820506832e2a0e2c389">https://gist.github.com/vosgaust/11862edf45ba6820506832e2a0e2c389</a></p>
+
+<p>En el siguiente blog seguiré con el ejemplo del tipo de exchange &ldquo;direct&rdquo;.</p>
+
+<h3 id="referencias">Referencias</h3>
+
+<ul>
+<li><p><a href="https://www.cloudamqp.com/blog/2017-07-25-RabbitMQ-and-AMQP-concepts-glossary.html">https://www.cloudamqp.com/blog/2017-07-25-RabbitMQ-and-AMQP-concepts-glossary.html</a></p></li>
+
+<li><p><a href="https://www.cloudamqp.com/blog/2015-09-03-part4-rabbitmq-for-beginners-exchanges-routing-keys-bindings.html">https://www.cloudamqp.com/blog/2015-09-03-part4-rabbitmq-for-beginners-exchanges-routing-keys-bindings.html</a></p></li>
+</ul>
+
+      </article>
+
+      
+        <ul class="pager blog-pager">
+          
+          
+        </ul>
+      
+
+
+      
+        
+        
+      
+
+    </div>
+  </div>
+</div>
+
+    <footer>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+        <ul class="list-inline text-center footer-links">
+          
+              <li>
+                <a href="mailto:edugar91@gmail.com" title="Email me">
+                  <span class="fa-stack fa-lg">
+                    <i class="fa fa-circle fa-stack-2x"></i>
+                    <i class="fa fa-envelope fa-stack-1x fa-inverse"></i>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a href="https://github.com/vosgaust" title="GitHub">
+                  <span class="fa-stack fa-lg">
+                    <i class="fa fa-circle fa-stack-2x"></i>
+                    <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a href="https://twitter.com/godraude" title="Twitter">
+                  <span class="fa-stack fa-lg">
+                    <i class="fa fa-circle fa-stack-2x"></i>
+                    <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a href="https://linkedin.com/in/edumoyano" title="LinkedIn">
+                  <span class="fa-stack fa-lg">
+                    <i class="fa fa-circle fa-stack-2x"></i>
+                    <i class="fa fa-linkedin fa-stack-1x fa-inverse"></i>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a href="https://stackoverflow.com/users/1555354/godraude" title="StackOverflow">
+                  <span class="fa-stack fa-lg">
+                    <i class="fa fa-circle fa-stack-2x"></i>
+                    <i class="fa fa-stack-overflow fa-stack-1x fa-inverse"></i>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a href="https://www.instagram.com/edugarmoy" title="Instagram">
+                  <span class="fa-stack fa-lg">
+                    <i class="fa fa-circle fa-stack-2x"></i>
+                    <i class="fa fa-instagram fa-stack-1x fa-inverse"></i>
+                  </span>
+                </a>
+              </li>
+          
+          <li>
+            
+            <a href="https://username.github.io/index.xml" title="RSS">
+            
+              <span class="fa-stack fa-lg">
+                <i class="fa fa-circle fa-stack-2x"></i>
+                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+              </span>
+            </a>
+          </li>
+          
+        </ul>
+        <p class="credits copyright text-muted">
+          
+            
+              <a href="edumoyano.com">Edu Moyano</a>
+            
+          
+
+          &nbsp;&bull;&nbsp;
+          2018
+
+          
+            &nbsp;&bull;&nbsp;
+            <a href="https://username.github.io">Cajon de-sastre</a>
+          
+        </p>
+        
+        <p class="credits theme-by text-muted">
+          <a href="http://gohugo.io">Hugo v0.37.1</a> powered &nbsp;&bull;&nbsp; Theme by <a href="http://deanattali.com/beautiful-jekyll/">Beautiful Jekyll</a> adapted to <a href="https://github.com/halogenica/beautifulhugo">Beautiful Hugo</a>
+          
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.js" integrity="sha384-/y1Nn9+QQAipbNQWU65krzJralCnuOasHncUFXGkdwntGeSvQicrYkiUBwsgUqc1" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/contrib/auto-render.min.js" integrity="sha384-dq1/gEHSxPZQ7DdrM82ID4YVol9BYyU7GbWlIwnwyPzotpoc57wDw/guX8EaYGPx" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="https://username.github.io/js/main.js"></script>
+<script src="https://username.github.io/js/highlight.min.js"></script>
+<script> hljs.initHighlightingOnLoad(); </script>
+<script> $(document).ready(function() {$("pre.chroma").css("padding","0");}); </script><script> renderMathInElement(document.body); </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe.min.js" integrity="sha384-QELNnmcmU8IR9ZAykt67vGr9/rZJdHbiWi64V88fCPaOohUlHCqUD/unNN0BXSqy" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.2/photoswipe-ui-default.min.js" integrity="sha384-m67o7SkQ1ALzKZIFh4CiTA8tmadaujiTa9Vu+nqPSwDOqHrDmxLezTdFln8077+q" crossorigin="anonymous"></script>
+<script src="https://username.github.io/js/load-photoswipe.js"></script>
+
+
+
+
+
+
+  </body>
+</html>
+
